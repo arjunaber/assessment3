@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Data Barang</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <style>
+        .error {
+            color: red;
+        }
+
+        .ui-state-highlight {
+            padding: 0.3em;
+            background-color: #FFFFCC;
+            border: 1px solid #E6DB55;
+
+        .highlight {
+    background-color: #f7ffad;
+    transition: background-color 500ms;
+         }
+
+        }
+    </style>
+</head>
+<body>
+    <form id="my-form">
+        <input type="hidden" id="edit-id" name="edit-id">
+        <label for="toko">Toko:</label>
+        <input type="text" id="toko" name="toko" required><br><br>
+        <label for="nama_barang">Nama Barang:</label>
+        <input type="text" id="nama_barang" name="nama_barang" required><br><br>
+        <label for="jenisbarang">Jenis Barang:</label>
+        <input type="text" id="jenisbarang" name="jenisbarang" required><br><br>
+        <button type="submit">Simpan</button>
+    </form>
+
+    <table id="data-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Toko</th>
+                <th>Nama Barang</th>
+                <th>Jenis Barang</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Validasi formulir menggunakan jQuery Validate
+            $("#my-form").validate({
+                rules: {
+                    toko: {
+                        required: true
+                    },
+                    nama_barang: {
+                        required: true
+                    },
+                    jenisbarang: {
+                        required: true
+                    }
+                },
+                messages: {
+                    toko: {
+                        required: "Toko harus diisi"
+                    },
+                    nama_barang: {
+                        required: "Nama Barang harus diisi"
+                    },
+                    jenisbarang: {
+                        required: "Jenis Barang harus diisi"
+                    }
+                },
+                highlight: function(element, errorClass) {
+                    $(element).fadeOut(function() {
+                        $(element).fadeIn();
+                    });
+                },
+                errorClass: "ui-state-highlight"
+            });
+
+            var dataTable = null;
+
+function resetForm() {
+    $("#edit-id").val("");
+    $("#toko").val("");
+    $("#nama_barang").val("");
+    $("#jenisbarang").val("");
+}
+
+function loadDataTable() {
+    if (dataTable !== null) {
+        dataTable.destroy();
+    }
+
+    dataTable = $('#data-table').DataTable({
+        ajax: {
+            url: 'http://localhost:3000/barang',
+            method: 'GET',
+            dataType: 'json',
+            dataSrc: ''
+        },
+        columns: [
+            { data: 'id' },
+            { data: 'toko' },
+            { data: 'nama_barang' },
+            { data: 'jenisbarang' },
+            {
+                data: null,
+                render: function(data, type, row) {
+                    return '<button class="edit-button" data-id="' + data.id + '">Edit</button>' +
+                           '<button class="delete-button" data-id="' + data.id + '">Hapus</button>';
+                }
+            }
+        ]
+    });
+}
+
+loadDataTable();
+
+// Fungsi validasi saat form di-submit
+$("#my-form").submit(function(event) {
+    event.preventDefault(); // Mencegah form untuk submit secara default
+
+    if (!$("#my-form").valid()) {
+        return;
+    }
+
+    var id = $("#edit-id").val();
+    var toko = $("#toko").val();
+    var namaBarang = $("#nama_barang").val();
+    var jenisBarang = $("#jenisbarang").val();
+
+    if (id === "") {
+    
+        $.ajax({
+            url: 'http://localhost:3000/barang',
+            method: 'POST',
+            data: {
+                toko: toko,
+                nama_barang: namaBarang,
+                jenisbarang: jenisBarang
+            },
+            success: function(response) {
+                resetForm();
+                loadDataTable();
+            },
+            error: function(xhr, status, error) {
+                console.log('Error:', error);
+            }
+        });
+    } else {
+        // Edit data
+        $.ajax({
+            url: 'http://localhost:3000/barang/' + id,
+            method: 'PUT',
+            data: {
+                toko: toko,
+                nama_barang: namaBarang,
+                jenisbarang: jenisBarang
+            },
+            success: function(response) {
+                resetForm();
+                loadDataTable();
+            },
+            error: function(xhr, status, error) {
+                console.log('Error:', error);
+            }
+        });
+    }
+});
+
+// Edit data
+$("#data-table").on("click", ".edit-button", function() {
+    var id = $(this).data("id");
+
+    $.ajax({
+        url: 'http://localhost:3000/barang/' + id,
+        method: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            $("#edit-id").val(response.id);
+            $("#toko").val(response.toko);
+            $("#nama_barang").val(response.nama_barang);
+            $("#jenisbarang").val(response.jenisbarang);
+        },
+        error: function(xhr, status, error) {
+            console.log('Error:', error);
+        }
+    });
+});
+
+// Hapus data
+$("#data-table").on("click", ".delete-button", function() {
+    var id = $(this).data("id");
+
+    $.ajax({
+        url: 'http://localhost:3000/barang/' + id,
+        method: 'DELETE',
+        success: function(response) {
+            loadDataTable();
+        },
+        error: function(xhr, status, error) {
+            console.log('Error:', error);
+        }
+    });
+});
+});
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "barang": [
+    {
+      "toko": "Budi oleh-oleh",
+      "nama_barang": "rumput laut",
+      "jenisbarang": "basah",
+      "id": 3
+    },
+    {
+      "id": 4,
+      "toko": "Citra oleh-oleh",
+      "nama_barang": "belacan",
+      "jenisbarang": "kering",
+      "harga": 200000,
+      "stok": 30
+    },
+    {
+      "toko": "Anis oleh-oleh",
+      "nama_barang": "sambal gami",
+      "jenisbarang": "basah",
+      "id": 5
+    },
+    {
+      "toko": "oleh-oleh akbar",
+      "nama_barang": "emping",
+      "jenisbarang": "kering",
+      "id": 6
+    }
+  ]
+}
